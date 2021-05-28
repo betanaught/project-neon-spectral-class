@@ -1,6 +1,3 @@
-# https://www.neonscience.org/classification-endmember-python
-# Data: https://data.neonscience.org/data-products/DP3.30006.001
-
 import this
 import h5py, os, copy
 import matplotlib.pyplot as plt
@@ -13,6 +10,11 @@ import pysptools.material_count as cnt
 
 import warnings
 warnings.filterwarnings('ignore')
+
+#------------------------------------------------------------------------------
+# https://www.neonscience.org/classification-endmember-python
+# Data: https://data.neonscience.org/data-products/DP3.30006.001
+this
 
 def read_neon_reflh5(refl_filename):
     """read in a NEON AOP reflectance hdf5 file and returns reflectance
@@ -68,15 +70,45 @@ h5refl2array('NEON_D02_SERC_DP1_20160807_160559_reflectance.h5;) """
     metadata['map info'] = (refl
                             ['Metadata']
                             ['Coordinate_System']
-                            ['Map_Info'].value)
+                            ['Map_Info']
+                            .value)
     metadata['wavelength'] = (refl
                               ['Metadata']
                               ['Spectral_data']
-                              ['Wavelength'].value)
+                              ['Wavelength']
+                              .value)
 
     #Extract no data value and set no data value to NaN
     metadata['data ignore value'] = float(reflData.attrs['Data_Ignore_Value'])
     metadata['reflectance scale factor'] =float(reflData.attrs['Scale_Factor'])
     metadata['interleave'] = reflData.attrs['Interleave']
 
-    
+    #Extract spatial extent from attributes
+    metadata['spatial extent'] = reflData.attrs['Spatial_Extent_meters']
+
+    #Extract bad band windows
+    metadata['bad_band_window1'] = refl.attrs['Band_Window_1_Nanometers']
+    metadata['bad_band_window2'] = refl.attrs['Band_Window_2_Nanometers']
+
+    #Extract projection information
+    metadata['projection'] = (refl
+                              ['Metadata']
+                              ['Coordinate_System']
+                              ['Proj4']
+                              .value)
+    metadata['epsg'] = int(refl
+                           ['Metadata']
+                           ['Coordinate_System']
+                           ['EPSG Code']
+                           .value)
+
+    #Extract map information: spatial extent & resolution (pixel size)
+    mapInfo = refl['Metadata']['Coordinate_System']['Map_Info'].value
+
+    hdf5_file.close
+
+    return reflArray, metadata
+
+
+h5refl_filename = '../data/NEON_D02_SERC_DP3_368000_4306000_reflectance-1.h5'
+data, metadata = read_neon_reflh5(h5refl_filename)
